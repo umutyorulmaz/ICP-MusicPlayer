@@ -1,0 +1,25 @@
+type Song = record {
+  id : text;
+  title : text;
+  owner : principal;
+  createdAt : nat64;
+  favSong : vec text;
+  updatedAt : opt nat64;
+  singer : text;
+  favCounter : float64;
+};
+type SongInfo = record {
+  title : text;
+  album : text;
+  singer : text;
+  producer : text;
+};
+type _AzleResult = variant { Ok : Song; Err : text };
+type _AzleResult_1 = variant { Ok : vec Song; Err : text };
+service : () -> {
+  addSong : (SongInfo) -> (_AzleResult);
+  deleteSong : (text) -> (_AzleResult);
+  getList : () -> (_AzleResult_1) query;
+  getSong : (text) -> (_AzleResult) query;
+  markAsFav : (text) -> (_AzleResult);
+}

@@ -1,1 +1,107 @@
-// cannister code goes here
+import {
+  $query,
+  $update,
+  Record,
+  StableBTreeMap,
+  Vec,
+  match,
+  Result,
+  nat64,
+  Principal,
+  ic,
+  Opt,
+} from "azle";
+
+import { v4 as uuidv4 } from "uuid";
+
+type Song = Record<{
+  id: string;
+  title: string;
+  singer: string;
+  owner: Principal;
+  favSong: Vec<string>;
+  favCounter: number;
+  createdAt: nat64;
+  updatedAt: Opt<nat64>;
+}>;
+
+type SongInfo = Record<{
+  title: string;
+  singer: string;
+  album: string;
+  producer: string;
+}>;
+const playList = new StableBTreeMap<string, Song>(0, 44, 1024);
+
+$query;
+export function getList(): Result<Vec<Song>, string> {
+  return Result.Ok(playList.values());
+}
+$query;
+export function getSong(id: string): Result<Song, string> {
+  return match(playList.get(id), {
+    Some: (song) => Result.Ok<Song, string>(song),
+    None: () => Result.Err<Song, string>(`a song with id=${id} not found`),
+  });
+}
+$update;
+export function addSong(songinfo: SongInfo): Result<Song, string> {
+  const song: Song = {
+    id: uuidv4(),
+    createdAt: ic.time(),
+    updatedAt: Opt.None,
+    favCounter: 0,
+    favSong: [],
+    owner: ic.caller(),
+    ...songinfo,
+  };
+  playList.insert(song.id, song);
+  return Result.Ok(song);
+}
+$update;
+export function markAsFav(id: string): Result<Song, string> {
+  return match(playList.get(id), {
+    Some: (song) => {
+      let favSong: Vec<string> = song.favSong;
+      // checks if user liked the song
+      if (favSong.includes(ic.caller().toString())) {
+        return Result.Err<Song, string>(
+          `Already marked as fav song with id ${id}`
+        );
+      }
+      // add user to the favSong array and increment the favCounter property by 1
+      const updatedSong: Song = {
+        ...song,
+        favCounter: song.favCounter + 1,
+        favSong: [...favSong, ic.caller().toString()],
+      };
+      playList.insert(song.id, updatedSong);
+      return Result.Ok<Song, string>(updatedSong);
+    },
+    None: () => Result.Err<Song, string>(`Song with id=${id} not found`),
+  });
+}
+
+$update;
+export function deleteSong(id: string): Result<Song, string> {
+  return match(playList.remove(id), {
+    Some: (deletedSong) => Result.Ok<Song, string>(deletedSong),
+    None: () =>
+      Result.Err<Song, string>(
+        `couldn't delete a song with id=${id}. song not found.`
+      ),
+  });
+}
+// a workaround to make uuid package work with Azle
+globalThis.crypto = {
+  // @ts-ignore
+  getRandomValues: () => {
+    let array = new Uint8Array(32);
+
+    for (let i = 0; i < array.length; i++) {
+      array[i] = Math.floor(Math.random() * 256);
+    }
+
+    return array;
+  },
+};
