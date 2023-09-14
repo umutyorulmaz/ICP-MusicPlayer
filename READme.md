@@ -20,7 +20,7 @@ Basic CRUD dapp modified for music industry. User can create a playlist, add and
 
 ## Further Implementations
 
-ICP Music Player Dapp can be improved by introducing Spotify API (Web2 integration), Audius(Web3 integration) API to itself.
+ICP Music Player Dapp can be improved by leveraging the power of Spotify API (Web2 integration), Audius(Web3 integration) API.
 
 ## To prepare local environment
 
