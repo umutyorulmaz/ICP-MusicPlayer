@@ -28,8 +28,7 @@ type Song = Record<{
 type SongInfo = Record<{
   title: string;
   singer: string;
-  album: string;
-  producer: string;
+  
 }>;
 
 const playList = new StableBTreeMap<string, Song>(0, 44, 1024);
@@ -40,20 +39,37 @@ const ERR_SONG_NOT_FOUND = "Song not found";
 const ERR_INVALID_PRICE = "Invalid price";
 
 $query;
-export function getList(): Result<Vec<Song>, string> {
-  return Result.Ok(playList.values());
+export function getSongsList(): Result<Vec<Song>, string> {
+  try {
+    return Result.Ok(playList.values());
+  } catch (error) {
+    return Result.Err(`Error occurred while getting the list of songs: ${error}`);
+  }
 }
 
 $query;
 export function getSong(id: string): Result<Song, string> {
-  return match(playList.get(id), {
-    Some: (song) => Result.Ok<Song, string>(song),
-    None: () => Result.Err<Song, string>(ERR_SONG_NOT_FOUND),
-  });
+  if (!id) {
+    return Result.Err<Song, string>("Invalid song id");
+  }
+  try {
+    const song = playList.get(id);
+    return match(song, {
+      Some: (song) => Result.Ok<Song, string>(song),
+      None: () => Result.Err<Song, string>(ERR_SONG_NOT_FOUND),
+    });
+  } catch (error) {
+    return Result.Err<Song, string>(`Error while getting song with id ${id}`);
+  }
 }
 
 $update;
 export function addSong(songinfo: SongInfo): Result<Song, string> {
+  // Validate the songinfo before processing it
+  if (!songinfo.title || !songinfo.singer ) {
+    return Result.Err<Song, string>("Invalid songinfo");
+  }
+
   const song: Song = {
     id: uuidv4(),
     createdAt: ic.time(),
@@ -61,10 +77,17 @@ export function addSong(songinfo: SongInfo): Result<Song, string> {
     favCounter: 0,
     favSong: [],
     owner: ic.caller(),
-    ...songinfo,
+    title: songinfo.title,
+    singer: songinfo.singer,
+    
   };
-  playList.insert(song.id, song);
-  return Result.Ok(song);
+
+  try {
+    playList.insert(song.id, song);
+    return Result.Ok(song);
+  } catch (error) {
+    return Result.Err("Failed to insert song to playlist");
+  }
 }
 
 $update;
