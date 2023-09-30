@@ -10,6 +10,7 @@ Basic CRUD dapp modified for music industry. User can create a playlist, add and
 - getSong() --> to query a song by id in the playlist
 - addSong() --> to add a song to the playlist
 - markAsFav() --> to like its favourite music
+- removeFav() --> to undo markAsFav() function
 - deleteSong() --> to delete a song from the playlist
 
 ## Stake Holders
@@ -77,7 +78,7 @@ URLs:
 Backend canister via Candid interface:
 music_player: http://127.0.0.1:8080/?canisterId=bd3sg-teaaa-aaaaa-qaaba-cai&id=bkyz2-fmaaa-aaaaa-qaaaq-cai
 
-Go to the URL to test the dapp by using candid interface. Fill the empty spaces under the addSong function and click call button to add the music to your playlist. You can repeat this step as many times as you wish to add all the songs to your playlist. Now you can click query button under the getList function to see the playlist. You will observe that every music has a unique id. By using this id you can delete a song from the playlist, you can see a single song or you can mark a song as your favourite by using deleteSong, getSong and markAsFav functions respectively. If you mark the music as your favourite you will observe that the favCounter value will be changed accordingly.
+Go to the URL to test the dapp by using candid interface. Fill the empty spaces under the addSong function and click call button to add the music to your playlist. You can repeat this step as many times as you wish to add all the songs to your playlist. Now you can click query button under the getList function to see the playlist. You will observe that every music has a unique id. By using this id you can delete a song from the playlist, you can see a single song, you can mark a song as your favourite or you can unlike a song by using deleteSong, getSong, markAsFav and removeFav functions respectively. If you mark the music as your favourite and if you remove the song from favourites you will observe that the favCounter value will be changed accordingly.
 
 Once you finish testing use the command below to stop the Inter Computer instance. It is recommended to do so, in order to free up resources plus avoiding conflicts for the future deployments.
 

@@ -19,7 +19,7 @@ type Song = Record<{
   title: string;
   singer: string;
   owner: Principal;
-  favSong: Vec<Principal>; // Store Principals of users who marked as favorite
+  favSong: Vec<string>;
   favCounter: number;
   createdAt: nat64;
   updatedAt: Opt<nat64>;
@@ -31,27 +31,19 @@ type SongInfo = Record<{
   album: string;
   producer: string;
 }>;
-
 const playList = new StableBTreeMap<string, Song>(0, 44, 1024);
-
-// Error messages
-const ERR_ALREADY_MARKED = "Already marked as fav song";
-const ERR_SONG_NOT_FOUND = "Song not found";
-const ERR_INVALID_PRICE = "Invalid price";
 
 $query;
 export function getList(): Result<Vec<Song>, string> {
   return Result.Ok(playList.values());
 }
-
 $query;
 export function getSong(id: string): Result<Song, string> {
   return match(playList.get(id), {
     Some: (song) => Result.Ok<Song, string>(song),
-    None: () => Result.Err<Song, string>(ERR_SONG_NOT_FOUND),
+    None: () => Result.Err<Song, string>(`a song with id=${id} not found`),
   });
 }
-
 $update;
 export function addSong(songinfo: SongInfo): Result<Song, string> {
   const song: Song = {
@@ -66,28 +58,53 @@ export function addSong(songinfo: SongInfo): Result<Song, string> {
   playList.insert(song.id, song);
   return Result.Ok(song);
 }
-
 $update;
 export function markAsFav(id: string): Result<Song, string> {
   return match(playList.get(id), {
     Some: (song) => {
-      // Check if the caller has already marked the song as a favorite
-      if (song.favSong.includes(ic.caller())) {
-        return Result.Err<Song, string>(ERR_ALREADY_MARKED);
+      let favSong: Vec<string> = song.favSong;
+      // checks if user liked the song
+      if (favSong.includes(ic.caller().toString()) && song.favCounter != 0) {
+        return Result.Err<Song, string>(
+          `Already marked as fav song with id ${id}`
+        );
       }
-
-      // Add caller to the list of favorite users
-      song.favSong.push(ic.caller());
-
-      // Increment the favorite counter
-      song.favCounter += 1;
-
-      // Update the song
-      playList.insert(song.id, song);
-
-      return Result.Ok<Song, string>(song);
+      // add user to the favSong array and increment the favCounter property by 1
+      const updatedSong: Song = {
+        ...song,
+        favCounter: song.favCounter + 1,
+        favSong: [...favSong, ic.caller().toString()],
+      };
+      playList.insert(song.id, updatedSong);
+      return Result.Ok<Song, string>(updatedSong);
     },
-    None: () => Result.Err<Song, string>(ERR_SONG_NOT_FOUND),
+    None: () => Result.Err<Song, string>(`Song with id=${id} not found`),
+  });
+}
+
+$update;
+export function removeFav(id: string): Result<Song, string> {
+  return match(playList.get(id), {
+    Some: (song) => {
+      let favSong: Vec<string> = song.favSong;
+      // checks if the song is liked or not
+      if (!favSong.includes(ic.caller().toString()) || song.favCounter != 1) {
+        return Result.Err<Song, string>(`Not marked as fav song with id ${id}`);
+      }
+      // checks the favCounter to prevent going below 0
+      // if (song.favCounter === 0) {
+      //   return Result.Err<Song, string>(`Not marked as fav song with id ${id}`);
+      // }
+      // update the changes
+      const updatedSong: Song = {
+        ...song,
+        favCounter: 0,
+        favSong: [...favSong, ic.caller().toString()],
+      };
+      playList.insert(song.id, updatedSong);
+      return Result.Ok<Song, string>(updatedSong);
+    },
+    None: () => Result.Err<Song, string>(`Song with id=${id} not found`),
   });
 }
 
@@ -101,7 +118,6 @@ export function deleteSong(id: string): Result<Song, string> {
       ),
   });
 }
-
 // a workaround to make uuid package work with Azle
 globalThis.crypto = {
   // @ts-ignore
