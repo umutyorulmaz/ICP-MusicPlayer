@@ -91,11 +91,7 @@ export function removeFav(id: string): Result<Song, string> {
       if (!favSong.includes(ic.caller().toString()) || song.favCounter != 1) {
         return Result.Err<Song, string>(`Not marked as fav song with id ${id}`);
       }
-      // checks the favCounter to prevent going below 0
-      // if (song.favCounter === 0) {
-      //   return Result.Err<Song, string>(`Not marked as fav song with id ${id}`);
-      // }
-      // update the changes
+
       const updatedSong: Song = {
         ...song,
         favCounter: 0,
