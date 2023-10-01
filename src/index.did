@@ -23,4 +23,5 @@ service : () -> {
   getSong : (text) -> (_AzleResult) query;
   markAsFav : (text) -> (_AzleResult);
   removeFav : (text) -> (_AzleResult);
+  shuffleList : () -> (_AzleResult_1);
 }

@@ -37,6 +37,32 @@ $query;
 export function getList(): Result<Vec<Song>, string> {
   return Result.Ok(playList.values());
 }
+
+$update;
+export function shuffleList(): Result<Vec<Song>, string> {
+  const originalPlaylistResult = getList();
+
+  if (originalPlaylistResult.Ok) {
+    const originalPlaylist = originalPlaylistResult.Ok;
+
+    // Deep copy the original playlist to avoid modifying it directly
+    const shuffledPlaylist = [...originalPlaylist];
+
+    // Shuffle the copied playlist
+    for (let i = shuffledPlaylist.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledPlaylist[i], shuffledPlaylist[j]] = [
+        shuffledPlaylist[j],
+        shuffledPlaylist[i],
+      ];
+    }
+
+    return Result.Ok(shuffledPlaylist);
+  } else {
+    return Result.Err(originalPlaylistResult.Err);
+  }
+}
+
 $query;
 export function getSong(id: string): Result<Song, string> {
   return match(playList.get(id), {
