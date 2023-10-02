@@ -34,11 +34,13 @@ type SongInfo = Record<{
 const playList = new StableBTreeMap<string, Song>(0, 44, 1024);
 
 $query;
+// gets the playlist with all added songs
 export function getList(): Result<Vec<Song>, string> {
   return Result.Ok(playList.values());
 }
 
 $update;
+// shuffles the playlist
 export function shuffleList(): Result<Vec<Song>, string> {
   const originalPlaylistResult = getList();
 
@@ -64,6 +66,7 @@ export function shuffleList(): Result<Vec<Song>, string> {
 }
 
 $query;
+// filters the playlist to get the specific song (id should be provided as input)
 export function getSong(id: string): Result<Song, string> {
   return match(playList.get(id), {
     Some: (song) => Result.Ok<Song, string>(song),
@@ -71,6 +74,7 @@ export function getSong(id: string): Result<Song, string> {
   });
 }
 $update;
+// adds songs to the playlist (songInfo should be provided as input by the user)
 export function addSong(songinfo: SongInfo): Result<Song, string> {
   const song: Song = {
     id: uuidv4(),
@@ -85,6 +89,7 @@ export function addSong(songinfo: SongInfo): Result<Song, string> {
   return Result.Ok(song);
 }
 $update;
+// marks the liked song as favourite by incrementing favCounter by 1 (id should be provided as input)
 export function markAsFav(id: string): Result<Song, string> {
   return match(playList.get(id), {
     Some: (song) => {
@@ -109,6 +114,7 @@ export function markAsFav(id: string): Result<Song, string> {
 }
 
 $update;
+// removes the like and decrease the favCounter back to 0 (id should be provided as input)
 export function removeFav(id: string): Result<Song, string> {
   return match(playList.get(id), {
     Some: (song) => {
@@ -131,6 +137,7 @@ export function removeFav(id: string): Result<Song, string> {
 }
 
 $update;
+// deletes a song from playlist (id should be provided as input)
 export function deleteSong(id: string): Result<Song, string> {
   return match(playList.remove(id), {
     Some: (deletedSong) => Result.Ok<Song, string>(deletedSong),
