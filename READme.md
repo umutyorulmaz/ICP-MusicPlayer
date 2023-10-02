@@ -2,7 +2,7 @@
 
 ## Project Description
 
-Basic CRUD dapp modified for music industry. User can create a playlist, add and delete songs, like its favourite music in the dapp.
+Basic CRUD dapp modified for music industry. User can create a playlist, shuffle it, filter it by song id, add and delete songs, like/unlike its favourite music in the dapp.
 
 ## Functions
 
