@@ -66,7 +66,7 @@ To start the Local Internet Computer Instance
 dfx start --clean
 ```
 
-To deploy the canister
+(open a new terminal or terminal tab) To deploy the canister
 
 ```bash
 dfx deploy
